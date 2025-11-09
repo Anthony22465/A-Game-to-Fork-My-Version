@@ -12,6 +12,8 @@ import javafx.scene.shape.Line;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Random;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 
 public class GameController {
 
@@ -101,6 +103,12 @@ public class GameController {
 
         gamePane.getChildren().add(circle);
     }
+    private double getCurrentFallSpeed() 
+    {
+        int score = model.getScore();
+        // Velocidad base + incremento según puntos
+        return FALL_SPEED + score * 0.05; // cada 20 puntos sube 1 unidad de velocidad
+    }
 
     private void updateCircles() {
         // Usamos un Iterator seguro para evitar errores al modificar la lista mientras iteramos
@@ -109,11 +117,19 @@ public class GameController {
             javafx.scene.Node node = iterator.next();
             if (node instanceof Circle circle) {
                 // Mover el círculo
-                circle.setLayoutY(circle.getLayoutY() + FALL_SPEED);
+
+                //cambiamos fall_speed por getCurrentFallSpeed()
+                //circle.setLayoutY(circle.getLayoutY() + FALL_SPEED);
+                circle.setLayoutY(circle.getLayoutY() + getCurrentFallSpeed());
 
                 // Comprobar si ha rebasado la línea de pérdida de vida
                 if (circle.getLayoutY() > LOST_LINE_Y) {
                     model.loseLife();
+                    // Cambiar el fondo temporalmente
+                    gamePane.setStyle("-fx-background-color: rgba(255,0,0,0.3);");
+                    PauseTransition pause = new PauseTransition(Duration.seconds(0.3));
+                    pause.setOnFinished(e -> gamePane.setStyle("-fx-background-color: white;"));
+                    pause.play();
                     iterator.remove(); // Eliminar el círculo
                 }
             }
